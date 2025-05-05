@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stream_chat_flutter/src/message_input/stream_message_input_icon_button.dart';
+import 'package:stream_chat_flutter/src/misc/empty_widget.dart';
 import 'package:stream_chat_flutter/stream_chat_flutter.dart';
 
 /// A widget that displays a sending button.
@@ -90,6 +91,10 @@ class StreamMessageSendButton extends StatelessWidget {
       final activeIcon? => activeIcon,
       _ => const StreamSvgIcon(icon: StreamSvgIcons.circleUp),
     };
+
+    if (isIdle) {
+      return const Empty();
+    }
 
     final theme = StreamMessageInputTheme.of(context);
     final icon = isIdle ? idleIcon : activeIcon;

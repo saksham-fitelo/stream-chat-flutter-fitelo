@@ -646,10 +646,11 @@ class StreamMessageInputState extends State<StreamMessageInput>
                     // Ensure this doesn't show on web & desktop
                     PlatformWidgetBuilder(
                       mobile: (context, child) => child,
-                      child: QuotingMessageTopArea(
-                        hasQuotedMessage: _hasQuotedMessage,
-                        onQuotedMessageCleared: widget.onQuotedMessageCleared,
-                      ),
+                      child: const Empty(),
+                      //  QuotingMessageTopArea(
+                      //   hasQuotedMessage: _hasQuotedMessage,
+                      //   onQuotedMessageCleared: widget.onQuotedMessageCleared,
+                      // ),
                     )
                   else if (_effectiveController.ogAttachment != null)
                     OGAttachmentPreview(
@@ -848,6 +849,10 @@ class StreamMessageInputState extends State<StreamMessageInput>
   }
 
   Widget _buildExpandActionsButton(BuildContext context) {
+    if ((widget.messageInputController?.text.isNotEmpty ?? false) ||
+        (widget.messageInputController?.attachments.isNotEmpty ?? false)) {
+      return const Empty();
+    }
     return AnimatedCrossFade(
       duration: const Duration(milliseconds: 200),
       crossFadeState: switch (widget.enableActionAnimation && _actionsShrunk) {
@@ -998,6 +1003,7 @@ class StreamMessageInputState extends State<StreamMessageInput>
   }
 
   Widget _buildTextInput(BuildContext context) {
+    final channel = StreamChannel.of(context).channel;
     final margin = (widget.sendButtonLocation == SendButtonLocation.inside
             ? const EdgeInsets.only(right: 8)
             : EdgeInsets.zero) +
@@ -1038,31 +1044,50 @@ class StreamMessageInputState extends State<StreamMessageInput>
           children: [
             _buildReplyToMessage(),
             _buildAttachments(),
-            LimitedBox(
-              maxHeight: widget.maxHeight,
-              child: Focus(
-                skipTraversal: true,
-                onKeyEvent: _handleKeyPressed,
-                child: StreamMessageTextField(
-                  key: const Key('messageInputText'),
-                  maxLines: widget.maxLines,
-                  minLines: widget.minLines,
-                  textInputAction: widget.textInputAction,
-                  onSubmitted: (_) => sendMessage(),
-                  keyboardType: widget.keyboardType,
-                  controller: _effectiveController,
-                  focusNode: _effectiveFocusNode,
-                  style: _messageInputTheme.inputTextStyle,
-                  autofocus: widget.autofocus,
-                  textAlignVertical: TextAlignVertical.center,
-                  decoration: _getInputDecoration(context),
-                  textCapitalization: widget.textCapitalization,
-                  autocorrect: widget.autoCorrect,
-                  contentInsertionConfiguration:
-                      widget.contentInsertionConfiguration,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                LimitedBox(
+                  maxHeight: widget.maxHeight,
+                  child: Focus(
+                    skipTraversal: true,
+                    onKeyEvent: _handleKeyPressed,
+                    child: StreamMessageTextField(
+                      key: const Key('messageInputText'),
+                      maxLines: widget.maxLines,
+                      minLines: widget.minLines,
+                      textInputAction: widget.textInputAction,
+                      onSubmitted: (_) => sendMessage(),
+                      keyboardType: widget.keyboardType,
+                      controller: _effectiveController,
+                      focusNode: _effectiveFocusNode,
+                      style: _messageInputTheme.inputTextStyle,
+                      autofocus: widget.autofocus,
+                      textAlignVertical: TextAlignVertical.center,
+                      decoration: _getInputDecoration(context),
+                      textCapitalization: widget.textCapitalization,
+                      autocorrect: widget.autoCorrect,
+                      contentInsertionConfiguration:
+                          widget.contentInsertionConfiguration,
+                    ),
+                  ),
                 ),
-              ),
+                if (!widget.disableAttachments && channel.canUploadFile) ...[
+                  const Spacer(),
+                  _buildAttachmentButton(context),
+                  const SizedBox(
+                    width: 4,
+                  )
+                ]
+              ],
             ),
+            // Positioned(
+            //   right: 5,
+            //   top: 5,
+            //   child: (!widget.disableAttachments && channel.canUploadFile)
+            //       ? _buildAttachmentButton(context)
+            //       : const Empty(),
+            // ),
           ],
         ),
       ),
